@@ -80,12 +80,22 @@ class TelegramHandler extends AbstractProcessingHandler
             throw new \InvalidArgumentException('Bot token or chat id is not defined for Telegram logger');
         }
 
+        if (isset($record['context']['channel'])) {
+            if ($record['context']['channel'] == 'bankin') {
+                $this->chatId = config('logging.channels.bankin.chat_id');
+            } elseif ($record['context']['channel'] == 'bankout') {
+                $this->chatId = config('logging.channels.bankout.chat_id');
+            } elseif ($record['context']['channel'] == 'bankreport') {
+                $this->chatId = config('logging.channels.bankreport.chat_id');
+            }
+        }
+
         // trying to make request and send notification
         try {
             $textChunks = str_split($this->formatText($record), 4096);
 
             foreach ($textChunks as $textChunk) {
-                $this->sendMessage($textChunk);
+                $this->sendMessage($textChunk, $this->chatId);
             }
         } catch (Exception $exception) {
             \Log::channel('single')->error($exception->getMessage());
@@ -129,12 +139,12 @@ class TelegramHandler extends AbstractProcessingHandler
     /**
      * @param string $text
      */
-    private function sendMessage(string $text): void
+    private function sendMessage(string $text, $chatId = null): void
     {
         $httpQuery = http_build_query(array_merge(
             [
                 'text'       => $text,
-                'chat_id'    => $this->chatId,
+                'chat_id'    => $chatId,
                 'parse_mode' => 'html',
             ],
             config('telegram-logger.options', [])
