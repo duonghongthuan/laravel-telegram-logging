@@ -81,13 +81,7 @@ class TelegramHandler extends AbstractProcessingHandler
         }
 
         if (isset($record['context']['channel'])) {
-            if ($record['context']['channel'] == 'bankin') {
-                $this->chatId = config('logging.channels.bankin.chat_id');
-            } elseif ($record['context']['channel'] == 'bankout') {
-                $this->chatId = config('logging.channels.bankout.chat_id');
-            } elseif ($record['context']['channel'] == 'bankreport') {
-                $this->chatId = config('logging.channels.bankreport.chat_id');
-            }
+            $this->chatId = config('logging.channels.'. $record['context']['channel'] .'.chat_id');
         }
 
         // trying to make request and send notification
