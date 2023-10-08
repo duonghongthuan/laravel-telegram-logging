@@ -86,7 +86,17 @@ class TelegramHandler extends AbstractProcessingHandler
 
         // trying to make request and send notification
         try {
-            $textChunks = str_split($this->formatText($record), 4096);
+            if (isset($record['context']['data']) && isset($record['context']['template'])) {
+                $dataMes['aryMes'] = $record['context']['data'];
+                $data = array_merge($dataMes, [
+                    'appName' => $this->appName,
+                    'appEnv'  => $this->appEnv,
+                ]);
+
+                $textChunks[] = view($record['context']['template'], $data)->render();
+            } else {
+                $textChunks = str_split($this->formatText($record), 4096);
+            }
 
             foreach ($textChunks as $textChunk) {
                 $this->sendMessage($textChunk, $this->chatId);
